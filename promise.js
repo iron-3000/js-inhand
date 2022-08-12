@@ -1,3 +1,50 @@
+const a = new Promise((resolve, reject) => {
+    resolve("aaaaa")
+})
+console.log(a.then().then())
+
+
+
+const REJECTED = 'REJECTED';
+const FULFILLED = 'FULFILLED';
+const PENDING = 'PENDING';
+
+function isPromise(val) {
+    if (typeof val === 'object' && val !== null || typeof val === 'function') {
+        return typeof val.then === 'function';
+    }
+    return false;
+}
+
+const resolvePromise = (promise2, x) => {
+    const {resolve, reject} = promise2;
+    if (promise2 === x) return reject(new TypeError('Chaining cycle detected for promise #<Promise>'));
+    if (typeof x === 'object' && x !== null || typeof x === 'function') {
+        let called;
+        try {
+            const then = x.then;
+            if (typeof then !== 'function'){
+                resolve(x);
+            }else {
+                then.call(x, (res) => {
+                    if (called) return;
+                    called = true;
+                    resolvePromise(promise2, res);
+                },(err) => {
+                    if (called) return ;
+                    called = true;
+                    reject(err);
+                })
+            }
+        } catch(err){
+            if (called) return;
+            called = true;
+            reject(err);
+        }
+    }else {
+        resolve(x);
+    }
+}
 class Promise {
             constructor(executor){
                 this.status = PENDING;
